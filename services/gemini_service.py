@@ -1,33 +1,50 @@
+from google import genai
 from PIL import Image
-import google.generativeai as genai
 
 from config.settings import settings
-
-genai.configure(api_key=settings.GOOGLE_API_KEY)
 
 
 class GeminiService:
 
     def __init__(self):
-        self.model = genai.GenerativeModel("gemini-2.5-flash")
+        self.client = genai.Client(
+            api_key=settings.GOOGLE_API_KEY
+        )
 
     def analyze_image(self, image_path):
 
         image = Image.open(image_path)
 
         prompt = """
-Analyze this image.
+You are an expert event photographer and AI image analyst.
 
-Return:
+Analyze the given image carefully.
 
-Description:
-Scene:
-Emotion:
-Importance:
+Return ONLY valid JSON.
+
+Example:
+
+{
+    "description":"Bride smiling while walking towards the stage.",
+    "scene":"Wedding Ceremony",
+    "emotion":"Happy",
+    "importance":9
+}
+
+Rules:
+
+1. Return only JSON.
+2. No markdown.
+3. No explanation.
+4. Importance must be an integer between 1 and 10.
 """
 
-        response = self.model.generate_content(
-            [prompt, image]
+        response = self.client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[
+                prompt,
+                image
+            ]
         )
 
         return response.text
@@ -35,19 +52,26 @@ Importance:
     def create_storyboard(self, descriptions):
 
         prompt = f"""
+You are a professional cinematic video editor.
 
-You are a professional wedding video editor.
+Create the best storyboard for a highlight reel.
 
-Arrange these image descriptions into the best cinematic sequence.
-
-Descriptions:
+Image Analysis:
 
 {descriptions}
 
-Return only numbered storyboard.
+Instructions:
 
+1. Arrange the scenes in logical order.
+2. Start with an introduction.
+3. Build the story naturally.
+4. Finish with a memorable ending.
+5. Return only the storyboard.
 """
 
-        response = self.model.generate_content(prompt)
+        response = self.client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
 
         return response.text

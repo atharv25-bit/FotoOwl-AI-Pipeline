@@ -1,3 +1,6 @@
+from utils.logger import logger
+import json
+
 from agents.base_agent import BaseAgent
 from models.pipeline_state import PipelineState
 from services.gemini_service import GeminiService
@@ -11,9 +14,12 @@ class ImageAnalyzerAgent(BaseAgent):
 
     def execute(self, state: PipelineState):
 
+        logger.info("Image Analyzer Started")
         print("\nAnalyzing Images...\n")
 
         images = state.selected_images[:settings.MAX_IMAGES_TO_ANALYZE]
+
+        analyzed_count = 0
 
         for image in images:
 
@@ -23,21 +29,43 @@ class ImageAnalyzerAgent(BaseAgent):
                     image.file_path
                 )
 
-                image.description = result
+                data = json.loads(result)
 
-                print(image.file_name)
-                print("-" * 50)
+                image.description = data.get(
+                    "description", ""
+                )
+
+                image.scene = data.get(
+                    "scene", ""
+                )
+
+                image.emotion = data.get(
+                    "emotion", ""
+                )
+
+                image.importance = int(
+                    data.get("importance", 0)
+                )
+
+                analyzed_count += 1
+
+                logger.info(f"Analyzed : {image.file_name}")
+                print(f"Analyzed : {image.file_name}")
+
+            except json.JSONDecodeError:
+
+                print(f"Invalid JSON returned for {image.file_name}")
 
             except Exception as e:
 
+                logger.error(f"Skipped : {image.file_name}")
                 print(f"Skipped {image.file_name}")
                 print(e)
-                print("-" * 50)
 
-                continue
+            print("-" * 60)
 
         state.logs.append(
-            f"{len(images)} images analyzed"
+            f"{analyzed_count} images analyzed"
         )
 
         return state

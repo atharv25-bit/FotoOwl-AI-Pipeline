@@ -14,7 +14,27 @@ class Settings:
     LOG_DIR = "logs"
 
     MAX_IMAGES_TO_ANALYZE = int(
-        os.getenv("MAX_IMAGES_TO_ANALYZE", 5)
+        os.getenv("MAX_IMAGES_TO_ANALYZE", 2)
+    )
+
+    VIDEO_WIDTH = int(
+        os.getenv("VIDEO_WIDTH", 1280)
+    )
+
+    VIDEO_HEIGHT = int(
+        os.getenv("VIDEO_HEIGHT", 720)
+    )
+
+    VIDEO_DURATION = float(
+        os.getenv("VIDEO_DURATION", 2)
+    )
+
+    VIDEO_FPS = int(
+        os.getenv("VIDEO_FPS", 24)
+    )
+
+    MAX_VIDEO_IMAGES = int(
+        os.getenv("MAX_VIDEO_IMAGES", 10)
     )
 
 

@@ -1,6 +1,8 @@
 from agents.base_agent import BaseAgent
 from models.pipeline_state import PipelineState
 from services.gemini_service import GeminiService
+from utils.logger import logger
+
 
 
 class StoryboardAgent(BaseAgent):
@@ -10,15 +12,28 @@ class StoryboardAgent(BaseAgent):
 
     def execute(self, state: PipelineState):
 
+        print("\nGenerating Storyboard...\n")
+
+        logger.info("Storyboard Agent Started")
+
         descriptions = ""
 
-        for image in state.selected_images:
+        for index, image in enumerate(state.selected_images, start=1):
+
             if image.description:
-                descriptions += image.description + "\n\n"
+
+                descriptions += (
+                    f"Image {index}\n"
+                    f"Description : {image.description}\n"
+                    f"Scene       : {image.scene}\n"
+                    f"Emotion     : {image.emotion}\n"
+                    f"Importance  : {image.importance}\n\n"
+                )
 
         if descriptions.strip() == "":
+
             state.storyboard.append(
-                "Storyboard could not be generated because no image descriptions were available."
+                "No valid image analysis found. Storyboard skipped."
             )
 
             state.logs.append("Storyboard Skipped")
@@ -31,17 +46,22 @@ class StoryboardAgent(BaseAgent):
                 descriptions
             )
 
+            state.storyboard.clear()
             state.storyboard.append(storyboard)
 
             state.logs.append("Storyboard Created")
+            logger.info("Storyboard Created")
+
+            print("Storyboard Generated Successfully")
 
         except Exception as e:
 
             print("\nStoryboard Generation Failed\n")
             print(e)
 
+            state.storyboard.clear()
             state.storyboard.append(
-                "Storyboard generation skipped because Gemini quota was exceeded."
+                "Storyboard generation skipped because the AI service is unavailable."
             )
 
             state.logs.append("Storyboard Skipped")
